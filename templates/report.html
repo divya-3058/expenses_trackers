@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Monthly Report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-4">
+
+<h2>📊 Monthly Report</h2>
+
+<input type="month" id="month" class="form-control w-25">
+<button onclick="generate()" class="btn btn-primary mt-2">Generate</button>
+
+<h4 id="summary" class="mt-3"></h4>
+<canvas id="chart"></canvas>
+
+<script>
+let prevSavings = 0;
+
+async function generate(){
+    let m = month.value;
+
+    let sum = await fetch(`/monthly_summary?month=${m}`).then(r=>r.json());
+    let cat = await fetch(`/category_report?month=${m}`).then(r=>r.json());
+
+    document.getElementById("summary").innerHTML =
+        `Income: ₹${sum.income} | Expense: ₹${sum.expense} | Savings: ₹${sum.savings}`;
+
+    if(prevSavings && sum.savings > prevSavings){
+        alert("🎉 Great Job! Your savings improved this month!");
+    } else if(prevSavings && sum.savings < prevSavings){
+        alert("⚠️ Try to reduce expenses next month!");
+    }
+    prevSavings = sum.savings;
+
+    new Chart(chart, {
+        type:'pie',
+        data:{ labels:Object.keys(cat), datasets:[{data:Object.values(cat)}] }
+    });
+}
+</script>
+</body>
+</html>
